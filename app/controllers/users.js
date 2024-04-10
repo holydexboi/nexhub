@@ -1,7 +1,7 @@
 "use strict"
 const { AUTH_CONSTANTS, USER_CONSTANTS, OTP_CONSTANTS } = require("../../config/constant");
-const { User, validateUserSignup, validateUserLogin, validateUserEdit, validateUserSocialPost, validateChangePassword, validateForgotResetPasswordEmail } = require("../models/user.js");
-const { verifyAndDeleteToken } = require("../models/otp");
+const { User, validateUserSignup, validateUserLogin, validateUserEdit, validateUserSocialPost, validateChangePassword, validateForgotResetPasswordEmail, validateForgotResetPasswordToken } = require("../models/user.js");
+const { verifyAndDeleteToken, verifyToken } = require("../models/otp");
 const { compareHash, generateHash } = require("../services/bcrypt.js");
 const { generateToken } = require("../services/jwtToken.js");
 const { authMiddleware } = require("../middleware/auth");
@@ -391,6 +391,40 @@ router.post("/forgot/password", async (req, res) => {
         statusCode: 200,
         success: true,
         message: USER_CONSTANTS.PASSWORD_RESET_SUCCESS
+    });
+});
+
+router.post("/validate/forgot/password/token", async (req, res) => {
+    const { error } = validateForgotResetPasswordToken(req.body);
+    if (error) return res.status(400).send({
+        apiId: req.apiId,
+        statusCode: 400,
+        success: false,
+        message: error.details[0].message
+    });
+
+    let user = await User.findOne({ email: req.body.email.toLowerCase() });
+    if (!user) return res.status(400).send({
+        apiId: req.apiId,
+        statusCode: 400,
+        success: false,
+        message: USER_CONSTANTS.NO_USER_FOUND_EMAIL
+    });
+
+    let isValid = await verifyToken(req.body.email, req.body.otpToken, "UFP");
+    if (!isValid) return res.status(400).send({
+        apiId: req.apiId,
+        statusCode: 400,
+        success: false,
+        message: OTP_CONSTANTS.INVALID_OTP
+    });
+
+    
+    res.send({
+        apiId: req.apiId,
+        statusCode: 200,
+        success: true,
+        message: USER_CONSTANTS.VALID_TOKEN_SUCCESS
     });
 });
 

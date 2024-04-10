@@ -113,6 +113,17 @@ async function verifyAndDeleteToken(email, inToken, type) {
     }
 }
 
+async function verifyToken(email, inToken, type) {
+    
+    const token = await Otp.findOne({ email: email, type: type, otp: inToken });
+    if (!token) {
+        return false;
+    } else {
+        
+        return true;
+    }
+}
+
 
 exports.Otp = Otp;
 exports.OtpToken = OtpToken;
@@ -120,3 +131,4 @@ exports.validateGenerateOtp = validateGenerateOtp;
 exports.validateVerifyOtp = validateVerifyOtp;
 exports.verifyAndDeleteOtpEmail = verifyAndDeleteOtpEmail;
 exports.verifyAndDeleteToken = verifyAndDeleteToken;
+exports.verifyToken = verifyToken;

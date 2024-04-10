@@ -1,29 +1,33 @@
 'use strict';
 require('dotenv').config();
-const nodemailer = require("nodemailer");
+const { MailtrapClient} = require("mailtrap");
 
-var transport = nodemailer.createTransport({
-    host: "live.smtp.mailtrap.io",
-    port: 587,
-    auth: {
-      user: process.env.MAIL_TRAP_USER,
-      pass: process.env.MAIL_TRAP_PASS
-    }
-  });
+const TOKEN = process.env.MAIL_TRAP_PASS
+
+const client  = new MailtrapClient({endpoint:'https://send.api.mailtrap.io/', token: TOKEN})
+
+const sender = {name: "NexHub", email: "mailtrap@nigerianexportersclub.com"}
 
 // async..await is not allowed in global scope, must use a wrapper
-async function main() {
+async function main(receiver, subject, message) {
   // send mail with defined transport object
-  const info = await transport.sendMail({
-    from: '"Maddison Foo Koch 👻" <maddison53@ethereal.email>', // sender address
-    to: "bar@example.com, baz@example.com", // list of receivers
-    subject: "Hello ✔", // Subject line
-    text: "Hello world?", // plain text body
-    html: "<b>Hello world?</b>", // html body
-  });
+  try{
 
-  console.log("Message sent: %s", info.messageId);
-  // Message sent: <d786aa62-4e0a-070a-47ed-0b0666549519@ethereal.email>
+    client.send({
+      from: sender,
+      to: receiver,
+      subject: subject,
+      text: message
+    })
+  }catch(err){
+    console.log(err)
+    return { error: err, statusCode: 400 };
+  }
+
 }
 
-main().catch(console.error);
+module.exports = {
+  main
+}
+
+//main().catch(console.error);

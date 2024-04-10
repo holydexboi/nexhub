@@ -152,6 +152,14 @@ function validateForgotResetPasswordEmail(req) {
     return schema.validate(req);
 };
 
+function validateForgotResetPasswordToken(req) {
+    const schema = Joi.object({
+        email: Joi.string().email().min(5).max(50).required(),
+        otpToken: Joi.string().required(),
+    });
+    return schema.validate(req);
+};
+
 //change password
 function validateChangePassword(req) {
     const schema = Joi.object({
@@ -170,5 +178,6 @@ module.exports = {
     validateUserEdit,
     validateUserSocialPost,
     validateForgotResetPasswordEmail,
-    validateChangePassword
+    validateChangePassword,
+    validateForgotResetPasswordToken
 }

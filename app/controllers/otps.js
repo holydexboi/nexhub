@@ -6,6 +6,7 @@ const router = express.Router();
 const { Otp, OtpToken, validateGenerateOtp, validateVerifyOtp } = require("../models/otp");
 const { SuperAdmin } = require('../models/superAdmin.js');
 const { User } = require("../models/user.js");
+const { main } = require('../services/mailTrap.js')
 // const { sendTemplateEmail } = require('../services/amazonSES.js');
 
 // generate otp
@@ -82,7 +83,35 @@ router.post("/create", async (req, res) => {
     await otp.save();
 
     // await sendTemplateEmail(user.email, { otp: otp.otp }, "otp_for_forgotPassword");
+    if(req.body.type === "UFP"){
+        
+        main([{email: req.body.email}], `[NEXHUB] Forgot Password`,
+     `Hey ${user.fullName}
 
+     Your reset token is ${otp?.otp}
+     
+     Nexhub Help
+
+     Thanks
+
+     Nexhub Team
+     `)
+
+    }else{
+        
+        main([{email: req.body.email}], `[NEXHUB] Reset Password`,
+     `Hey ${user.fullName}
+
+     Your reset token is ${otp?.otp}
+     
+     Nexhub Help
+
+     Thanks
+
+     Nexhub Team
+     `)
+
+    }
     return res.status(200).send({
         apiId: req.apiId,
         statusCode: 200,

@@ -27,6 +27,7 @@ const USER_CONSTANTS = {
     EDIT_PROFILE_SUCCESS: "Your profile has been updated successfully.",
     NO_USER_FOUND_EMAIL: "No user found with this email.",
     PASSWORD_RESET_SUCCESS: "Your password has been successfully reset.",
+    VALID_TOKEN_SUCCESS: "The token provided is valid.",
     LOGOUT_SUCCESSFULLY: "Logged out successfully.",
     EMAIL_ALREADY_EXISTS: "This email is already registered.",
     MOBILE_ALREADY_EXISTS: "This mobile number is already registerd.",
