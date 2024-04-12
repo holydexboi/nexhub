@@ -136,7 +136,7 @@ function validateUserEdit(req) {
         exportLicenseNo: Joi.string().min(3).max(50),
         uploadDocPic: Joi.array().items(Joi.string().allow("")),
         profilePic: Joi.array().items(Joi.string().allow("")),
-        firebaseToken: Joi.string().min(1).max(200).allow(""),
+        firebaseToken: Joi.string().min(1).max(200).allow(""),                                                              
     });
     return schema.validate(req);
 };
@@ -160,6 +160,14 @@ function validateForgotResetPasswordToken(req) {
     return schema.validate(req);
 };
 
+function validateGetLocation(req) {
+    const schema = Joi.object({
+        lat: Joi.string().required(),
+        long: Joi.string().required(),
+    });
+    return schema.validate(req);
+};
+
 //change password
 function validateChangePassword(req) {
     const schema = Joi.object({
@@ -179,5 +187,6 @@ module.exports = {
     validateUserSocialPost,
     validateForgotResetPasswordEmail,
     validateChangePassword,
-    validateForgotResetPasswordToken
+    validateForgotResetPasswordToken,
+    validateGetLocation
 }

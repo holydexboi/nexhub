@@ -1,11 +1,12 @@
 "use strict"
-const { AUTH_CONSTANTS, USER_CONSTANTS, OTP_CONSTANTS } = require("../../config/constant");
-const { User, validateUserSignup, validateUserLogin, validateUserEdit, validateUserSocialPost, validateChangePassword, validateForgotResetPasswordEmail, validateForgotResetPasswordToken } = require("../models/user.js");
+const { AUTH_CONSTANTS, USER_CONSTANTS, OTP_CONSTANTS, LOCATION_CONSTANTS } = require("../../config/constant");
+const { User, validateUserSignup, validateUserLogin, validateUserEdit, validateUserSocialPost, validateChangePassword, validateForgotResetPasswordEmail, validateForgotResetPasswordToken, validateGetLocation } = require("../models/user.js");
 const { verifyAndDeleteToken, verifyToken } = require("../models/otp");
 const { compareHash, generateHash } = require("../services/bcrypt.js");
 const { generateToken } = require("../services/jwtToken.js");
 const { authMiddleware } = require("../middleware/auth");
 const multer = require("multer");
+const axios = require('axios')
 const storage = multer.memoryStorage();
 const uploadDirect = multer({ storage: storage });
 const { uploadFiles } = require("../services/awsService");
@@ -425,6 +426,40 @@ router.post("/validate/forgot/password/token", async (req, res) => {
         statusCode: 200,
         success: true,
         message: USER_CONSTANTS.VALID_TOKEN_SUCCESS
+    });
+});
+
+router.post("/validate/location", async (req, res) => {
+    const { error } = validateGetLocation(req.body);
+    if (error) return res.status(400).send({
+        apiId: req.apiId,
+        statusCode: 400,
+        success: false,
+        message: error.details[0].message
+    });
+
+    let location = await axios.get(`http://api.geonames.org/countryCodeJSON?lat=${req.body.lat}&lng=${req.body.long}&username=${process.env.LOCATION_USER}`)
+
+    // if (location?.data?.status) return res.status(400).send({
+    //     apiId: req.apiId,
+    //     statusCode: 400,
+    //     success: false,
+    //     message: location?.data?.status?.message
+    // });
+
+    if(location?.data?.countryCode !== "NG") return res.status(400).send({
+        apiId: req.apiId,
+        statusCode: 400,
+        success: false,
+        message: LOCATION_CONSTANTS.INVALID_LOCATION
+    })
+
+    res.send({
+        apiId: req.apiId,
+        statusCode: 200,
+        success: true,
+        data: location?.data?.countryName,
+        message: LOCATION_CONSTANTS.VALID_LOCATION,
     });
 });
 

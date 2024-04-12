@@ -83,6 +83,11 @@ const CATEGORY_CONSTANTS = {
     EDIT_CATEGORY: "You have successfully updated this category.",
 };
 
+const LOCATION_CONSTANTS = {
+    INVALID_LOCATION: "Sorry, this app is not yet available in your country",
+    VALID_LOCATION: "The location is valid"
+};
+
 const CONTRACT_CONSTANTS = {
     CONTRACT_ALREADY_EXISTS: "Contract already exists.",
     NOT_FOUND: "Contract not found.",
@@ -119,6 +124,6 @@ module.exports = {
     PRODUCT_CONSTANTS,
     CATEGORY_CONSTANTS,
     CONTRACT_CONSTANTS,
-
+    LOCATION_CONSTANTS,
     PARENT_CONSTANTS,
 }
