@@ -376,13 +376,13 @@ router.post("/forgot/password", async (req, res) => {
         message: USER_CONSTANTS.NO_USER_FOUND_EMAIL
     });
 
-    let isValid = await verifyAndDeleteToken(req.body.email, req.body.otpToken, "UFP");
-    if (!isValid) return res.status(400).send({
-        apiId: req.apiId,
-        statusCode: 400,
-        success: false,
-        message: OTP_CONSTANTS.INVALID_OTP
-    });
+    // let isValid = await verifyAndDeleteToken(req.body.email, req.body.otpToken, "UFP");
+    // if (!isValid) return res.status(400).send({
+    //     apiId: req.apiId,
+    //     statusCode: 400,
+    //     success: false,
+    //     message: OTP_CONSTANTS.INVALID_OTP
+    // });
 
     var encryptPassword = generateHash(req.body.newPassword);
     user.password = encryptPassword;
@@ -412,7 +412,7 @@ router.post("/validate/forgot/password/token", async (req, res) => {
         message: USER_CONSTANTS.NO_USER_FOUND_EMAIL
     });
 
-    let isValid = await verifyToken(req.body.email, req.body.otpToken, "UFP");
+    let isValid = await verifyAndDeleteToken(req.body.email, req.body.otpToken, "UFP");
     if (!isValid) return res.status(400).send({
         apiId: req.apiId,
         statusCode: 400,

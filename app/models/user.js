@@ -145,7 +145,6 @@ function validateUserEdit(req) {
 function validateForgotResetPasswordEmail(req) {
     const schema = Joi.object({
         email: Joi.string().email().min(5).max(50).required(),
-        otpToken: Joi.string().required(),
         newPassword: Joi.string().min(8).required().label('Password'),
         confirmPassword: Joi.any().equal(Joi.ref('newPassword')).required().label('Confirm password').options({ messages: { 'any.only': '{{#label}} does not match' } }),
     });
