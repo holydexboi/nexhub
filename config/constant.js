@@ -74,6 +74,16 @@ const PRODUCT_CONSTANTS = {
     STATUS_CHANGED: "Status has been changed successfully.",
 };
 
+const PRODUCTBID_CONSTANTS = {
+    PRODUCTBID_ALREADY_EXISTS: "Product already exists with these details.",
+    NOT_FOUND: "Product not found.",
+    PRODUCT_DELETED: "Product deleted successfully.",
+    PRODUCT_BID_SUCCESS: "Product bidded successfully.",
+    VIEW_PRODUCT: "You are currently viewing Product list.",
+    EDIT_PRODUCT: "You have successfully updated this Product.",
+    STATUS_CHANGED: "Status has been changed successfully.",
+};
+
 const CATEGORY_CONSTANTS = {
     CATEGORY_ALREADY_EXISTS: "Category already exists.",
     NOT_FOUND: "Category not found.",
@@ -126,4 +136,5 @@ module.exports = {
     CONTRACT_CONSTANTS,
     LOCATION_CONSTANTS,
     PARENT_CONSTANTS,
+    PRODUCTBID_CONSTANTS
 }
