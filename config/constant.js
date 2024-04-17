@@ -75,7 +75,7 @@ const PRODUCT_CONSTANTS = {
 };
 
 const PRODUCTBID_CONSTANTS = {
-    PRODUCTBID_ALREADY_EXISTS: "Product already exists with these details.",
+    PRODUCTBID_ALREADY_EXISTS: "You already bid for this product.",
     NOT_FOUND: "Product not found.",
     PRODUCT_DELETED: "Product deleted successfully.",
     PRODUCT_BID_SUCCESS: "Product bidded successfully.",
