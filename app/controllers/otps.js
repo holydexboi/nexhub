@@ -86,7 +86,7 @@ router.post("/create", async (req, res) => {
     if(req.body.type === "UFP"){
         
         main([{email: req.body.email}], `[NEXHUB] Forgot Password`,
-     `Hey ${user.fullName}
+     `Hey ${user.firstName ? user.firstName : user.fullName}
 
      Your reset token is ${otp?.otp}
      
