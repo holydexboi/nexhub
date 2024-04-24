@@ -38,7 +38,7 @@ router.post("/bid", authMiddleware(["superAdmin", "user"]), async (req, res) => 
     });
 
     const productBid = new ProductBid(_.pick(req.body, [
-        "productBidId",
+        "productId",
     ]))
 
     productBid.userId = req.jwtData._id
@@ -64,6 +64,104 @@ router.post("/bid", authMiddleware(["superAdmin", "user"]), async (req, res) => 
         success: true,
         message: PRODUCTBID_CONSTANTS.PRODUCT_BID_SUCCESS,
         data: response
+    });
+});
+
+// view importer request list
+router.get("/request/poll", authMiddleware(["superAdmin", "user"]), async (req, res) => {
+    var criteria = {};
+
+    var offset = isNaN(parseInt(req.query.offset)) ? 0 : parseInt(req.query.offset) * 10;
+    var limit = isNaN(parseInt(req.query.limit)) ? 500 : parseInt(req.query.limit);
+
+    if (req.jwtData.role === "user") {
+        criteria.status = "active";
+    } else {
+        criteria.createdBy = req.jwtData._id;
+    }
+
+    if (req.query.status) criteria.status = req.query.status;
+
+    if (req.query.productId) {
+        criteria._id = new mongoose.Types.ObjectId(req.query.productId);
+    }
+
+    if (req.query.productCategoryId) {
+        criteria.productCategoryId = req.query.productCategoryId;
+    }
+
+    if (req.query.text) {
+        var regexName = new RegExp(req.query.text, "i");
+        criteria.$or = [{ productName: regexName }, { productCategoryName: regexName }];
+    }
+
+    let response = await Product.aggregate([
+        { $match: criteria },
+        { $sort: { insertDate: -1 } },
+        { $skip: offset },
+        { $limit: limit },
+        {
+            $lookup: {
+                from: "categories",
+                let: { categoryId: { $toObjectId: "$productCategoryId" } },
+                pipeline: [
+                    { $match: { $expr: { $eq: ["$_id", "$$categoryId"] } } },
+                ],
+                as: "categoryDetails",
+            },
+        },
+        {
+            $project: {
+                _id: "$_id",
+                productId: "$_id",
+                productCategoryId: 1,
+                productCategoryName: { $arrayElemAt: ["$categoryDetails.categoryName", 0] },
+                productName: 1,
+                productPic: 1,
+                description: 1,
+                quantity: 1,
+                pricePerKg: 1,
+                status: 1,
+                updatedAt: 1,
+                updatedBy: 1,
+                createdBy: 1,
+                insertDate: 1,
+                creationDate: 1,
+            }
+        },
+    ]);
+    let bidProduct = await ProductBid.aggregate([
+
+        {
+            $project: {
+                _id: "$_id",
+                productId: 1,
+                userId: 1
+            }
+        },
+    ]);
+    
+const importPoll = response.map(resp => {
+    resp.bidded = false 
+    bidProduct.map(bid => {
+        if(bid.productId == resp._id){
+            resp.bidded = true
+            
+        }
+            
+
+
+    })
+    return resp
+})
+    let totalCount = await Product.countDocuments(criteria);
+    return res.send({
+        apiId: req.apiId,
+        statusCode: 200,
+        success: true,
+        message: PRODUCT_CONSTANTS.VIEW_PRODUCT,
+        totalCount,
+        data: importPoll
     });
 });
 
