@@ -8,6 +8,7 @@ const productCategory = require("../controllers/productCategories");
 const product = require("../controllers/products");
 const productBid = require("../controllers/productBid");
 const contract = require("../controllers/contracts");
+const plan = require("../controllers/subscriberPlan");
 
 
 const error = require("../middleware/error");
@@ -23,6 +24,7 @@ module.exports = function (app) {
     app.use("/api/product", product);
     app.use("/api/product/contract/", productBid);
     app.use("/api/contract", contract);
+    app.use("/api/plan", plan);
 
 
 

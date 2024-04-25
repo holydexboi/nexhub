@@ -1,6 +1,6 @@
 "use strict"
 const { AUTH_CONSTANTS, USER_CONSTANTS, OTP_CONSTANTS, LOCATION_CONSTANTS } = require("../../config/constant");
-const { User, validateUserSignup, validateUserLogin, validateUserEdit, validateUserSocialPost, validateChangePassword, validateForgotResetPasswordEmail, validateForgotResetPasswordToken, validateGetLocation } = require("../models/user.js");
+const { User, validateUserSignup, validateUserLogin, validateUserEdit, validateUserSocialPost, validateChangePassword, validateForgotResetPasswordEmail, validateForgotResetPasswordToken, validateGetLocation, validateSubscription} = require("../models/user.js");
 const { verifyAndDeleteToken, verifyToken } = require("../models/otp");
 const { compareHash, generateHash } = require("../services/bcrypt.js");
 const { generateToken } = require("../services/jwtToken.js");
@@ -522,6 +522,88 @@ router.post("/logout", authMiddleware(["user"]), async (req, res) => {
         message: USER_CONSTANTS.LOGOUT_SUCCESSFULLY
     });
 });
+
+router.post("/subscribe", async (req, res) => {
+    const { error } = validateSubscription(req.body);
+    if (error) return res.status(400).send({
+        apiId: req.apiId,
+        statusCode: 400,
+        success: false,
+        message: error.details[0].message
+    });
+
+    let email;
+    if (req.body.email) email = req.body.email.toLowerCase();
+
+
+    let userExist = await User.findOne({ email: email });
+    if (!userExist) return res.status(400).send({
+        apiId: req.apiId,
+        statusCode: 400,
+        success: false,
+        message: USER_CONSTANTS.NOT_FOUND
+    });
+
+    const user = new User(_.pick(req.body, [
+        "email",
+        "plan"
+    ]));
+
+    user.email = email;
+    user.plan = mobile;
+    user.status = "active";
+    user.role = "user";
+    user.password = generateHash(req.body.password);
+
+    user.authToken = generateToken(user._id, user.email, user.role);
+
+    // to unset device token of other user from same handset.
+    if (req.body.firebaseToken) await User.updateMany({ firebaseToken: req.body.firebaseToken, email: { $ne: user.email } }, { $set: { firebaseToken: "" } });
+
+    await user.save();
+    user.userId = user._id;
+
+    const response = _.pick(user, [
+        "_id",
+        "userId",
+        "userType",
+        "firstName",
+        "lastName",
+        "profilePic",
+        "email",
+        "countryCode",
+        "mobile",
+        "password",
+        "referralCode",
+        "companyName",
+        "storeName",
+        "aboutBusiness",
+        "typeofProduct",
+        "registrationNo",
+        "exportLicenseNo",
+        "uploadDocPic",
+        "firebaseToken",
+        "termsAndConditions",
+        "facebookId",
+        "googleId",
+        "authToken",
+        "authType",
+        "role",
+        "status",
+        "updatedAt",
+        "insertDate",
+        "creationDate"
+    ]);
+    res.status(200).send({
+        apiId: req.apiId,
+        statusCode: 200,
+        success: true,
+        message: USER_CONSTANTS.USER_CREATED_SUCCESS,
+        data: response
+
+    });
+});
+
 
 
 

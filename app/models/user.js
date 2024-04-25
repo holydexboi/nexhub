@@ -28,6 +28,8 @@ const UserSchema = new mongoose.Schema({
     facebookId: { type: String, default: "" },
     googleId: { type: String, default: "" },
     isOnline: { type: Boolean, default: false },
+    plan: { type: String, default: "" },
+    subscriptionStatus: { type: String, enum: ["active", "inactive"], default: "inactive", },
     // lastSeen: {
     //     type: Date,
     //     default: () => {
@@ -177,6 +179,15 @@ function validateChangePassword(req) {
     return schema.validate(req);
 }
 
+function validateSubscription(req) {
+    const schema = Joi.object({
+        email: Joi.string().email().min(5).max(50).required(),
+        plan: Joi.string().min(2).max(255).required(),
+        subscriptionStatus: Joi.string().valid("active", "inactive").required(),
+    });
+    return schema.validate(req);
+};
+
 
 module.exports = {
     User,
@@ -187,5 +198,6 @@ module.exports = {
     validateForgotResetPasswordEmail,
     validateChangePassword,
     validateForgotResetPasswordToken,
-    validateGetLocation
+    validateGetLocation,
+    validateSubscription
 }

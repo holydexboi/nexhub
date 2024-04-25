@@ -93,6 +93,15 @@ const CATEGORY_CONSTANTS = {
     EDIT_CATEGORY: "You have successfully updated this category.",
 };
 
+const PLAN_CONSTANTS = {
+    PLAN_ALREADY_EXISTS: "Plan already exists.",
+    NOT_FOUND: "Plan not found.",
+    PLAN_DELETED: "Plan deleted successfully.",
+    PLAN_CREATED_SUCCESS: "Plan created successfully.",
+    VIEW_PLAN: "You are currently viewing plan list.",
+    EDIT_PLAN: "You have successfully updated this plan.",
+};
+
 const LOCATION_CONSTANTS = {
     INVALID_LOCATION: "Sorry, this app is not yet available in your country",
     VALID_LOCATION: "The location is valid"
@@ -136,5 +145,6 @@ module.exports = {
     CONTRACT_CONSTANTS,
     LOCATION_CONSTANTS,
     PARENT_CONSTANTS,
-    PRODUCTBID_CONSTANTS
+    PRODUCTBID_CONSTANTS,
+    PLAN_CONSTANTS
 }
