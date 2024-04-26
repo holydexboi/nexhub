@@ -30,6 +30,7 @@ const UserSchema = new mongoose.Schema({
     isOnline: { type: Boolean, default: false },
     plan: { type: String, default: "" },
     subscriptionStatus: { type: String, enum: ["active", "inactive"], default: "inactive", },
+    subscriptionDate: { type: String, default: "" },
     // lastSeen: {
     //     type: Date,
     //     default: () => {
@@ -183,7 +184,14 @@ function validateSubscription(req) {
     const schema = Joi.object({
         email: Joi.string().email().min(5).max(50).required(),
         plan: Joi.string().min(2).max(255).required(),
-        subscriptionStatus: Joi.string().valid("active", "inactive").required(),
+    });
+    return schema.validate(req);
+};
+
+function validatePaymentInitialization(req) {
+    const schema = Joi.object({
+        email: Joi.string().email().min(5).max(50).required(),
+        plan: Joi.string().min(2).max(255).required(),
     });
     return schema.validate(req);
 };
@@ -199,5 +207,6 @@ module.exports = {
     validateChangePassword,
     validateForgotResetPasswordToken,
     validateGetLocation,
-    validateSubscription
+    validateSubscription,
+    validatePaymentInitialization
 }

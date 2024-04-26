@@ -196,6 +196,13 @@ router.get("/list", authMiddleware(["superAdmin", "user"]), async (req, res) => 
                 specifications: 1,
                 adMixture: 1,
                 productColor: 1,
+                orderStatus: 1,
+                contractApprovedDate: 1,
+                contractConfirmedDate: 1,
+                processToSpecDate: 1,
+                exportDocumentUploadDate: 1,
+                consignmentPortDate: 1,
+                consignmentDestinationDate: 1,
                 mucor: 1,
                 deliveryDate: 1,
                 destinationPort: 1,
@@ -261,6 +268,8 @@ router.put("/approve/reject", authMiddleware(["superAdmin"]), async (req, res) =
             const prefix = "ORD";
             const uniqueId = uuid.v4().split('-')[0];
             existingContract.orderId = `${prefix}${orderCounter++}-${uniqueId}`;
+            existingContract.orderStatus = "pending inspection"
+            existingContract.contractApprovedDate = new Date()
         } else {
             existingContract.orderId = "";
         }

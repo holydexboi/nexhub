@@ -48,6 +48,7 @@ router.post("/create", authMiddleware(["superAdmin"]), async (req, res) => {
         "description",
         "term",
         "status",
+        "planCode",
         "updatedAt",
         "updatedBy",
         "createdBy",
@@ -143,6 +144,7 @@ router.put("/edit", authMiddleware(["superAdmin"]), async (req, res) => {
     plan.updatedBy = req.jwtData._id;
 
     plan.type = req.body.type || plan.type;
+    plan.planCode = req.body.planCode || plan.planCode;
     plan.description = req.body.description || plan.description;
     plan.term = req.body.term || plan.term;
     plan.price = req.body.price || plan.price;
@@ -157,6 +159,7 @@ router.put("/edit", authMiddleware(["superAdmin"]), async (req, res) => {
         "term",
         "description",
         "price",
+        "planCode",
         "status",
         "updatedAt",
         "updatedBy",

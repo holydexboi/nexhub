@@ -1,11 +1,13 @@
 "use strict"
-const { AUTH_CONSTANTS, USER_CONSTANTS, OTP_CONSTANTS, LOCATION_CONSTANTS } = require("../../config/constant");
-const { User, validateUserSignup, validateUserLogin, validateUserEdit, validateUserSocialPost, validateChangePassword, validateForgotResetPasswordEmail, validateForgotResetPasswordToken, validateGetLocation, validateSubscription} = require("../models/user.js");
+const { AUTH_CONSTANTS, USER_CONSTANTS, OTP_CONSTANTS, LOCATION_CONSTANTS, PLAN_CONSTANTS } = require("../../config/constant");
+const { User, validateUserSignup, validateUserLogin, validateUserEdit, validateUserSocialPost, validateChangePassword, validateForgotResetPasswordEmail, validateForgotResetPasswordToken, validateGetLocation, validateSubscription, validatePaymentInitialization} = require("../models/user.js");
+const { SubscriberPlan} = require("../models/subscriberPlan.js");
 const { verifyAndDeleteToken, verifyToken } = require("../models/otp");
 const { compareHash, generateHash } = require("../services/bcrypt.js");
 const { generateToken } = require("../services/jwtToken.js");
 const { authMiddleware } = require("../middleware/auth");
 const multer = require("multer");
+const { pay } = require("../services/payment.js");
 const axios = require('axios')
 const storage = multer.memoryStorage();
 const uploadDirect = multer({ storage: storage });
@@ -95,6 +97,9 @@ router.post("/create", async (req, res) => {
         "authToken",
         "authType",
         "role",
+        "plan",
+        "subscriptionStatus",
+        "subscriptionDate",
         "status",
         "updatedAt",
         "insertDate",
@@ -171,6 +176,9 @@ router.post("/login", async (req, res) => {
         "googleId",
         "authType",
         "role",
+        "plan",
+        "subscriptionStatus",
+        "subscriptionDate",
         "status",
         "updatedAt",
         "insertDate",
@@ -226,6 +234,9 @@ router.get("/view/profile", authMiddleware(["user"]), async (req, res) => {
         "googleId",
         "authType",
         "role",
+        "plan",
+        "subscriptionStatus",
+        "subscriptionDate",
         "status",
         "updatedAt",
         "insertDate",
@@ -335,6 +346,9 @@ router.put("/edit/profile", authMiddleware(["user"]), (req, res, next) => {
             "googleId",
             "authType",
             "role",
+            "plan",
+            "subscriptionStatus",
+            "subscriptionDate",
             "status",
             "updatedAt",
             "insertDate",
@@ -523,7 +537,7 @@ router.post("/logout", authMiddleware(["user"]), async (req, res) => {
     });
 });
 
-router.post("/subscribe", async (req, res) => {
+router.put("/subscribe", authMiddleware(["user"]), async (req, res) => {
     const { error } = validateSubscription(req.body);
     if (error) return res.status(400).send({
         apiId: req.apiId,
@@ -536,29 +550,30 @@ router.post("/subscribe", async (req, res) => {
     if (req.body.email) email = req.body.email.toLowerCase();
 
 
-    let userExist = await User.findOne({ email: email });
-    if (!userExist) return res.status(400).send({
+    let user = await User.findOne({ email: email });
+    if (!user) return res.status(400).send({
         apiId: req.apiId,
         statusCode: 400,
         success: false,
         message: USER_CONSTANTS.NOT_FOUND
     });
 
-    const user = new User(_.pick(req.body, [
-        "email",
-        "plan"
-    ]));
+    var plan;
+    if (req.body.plan) plan = req.body.plan;
 
-    user.email = email;
-    user.plan = mobile;
-    user.status = "active";
-    user.role = "user";
-    user.password = generateHash(req.body.password);
+    const existingPlan = await SubscriberPlan.findOne({ _id: plan });
+    if (!existingPlan) return res.status(400).send({
+        apiId: req.apiId,
+        statusCode: 400,
+        success: false,
+        message: PLAN_CONSTANTS.NOT_FOUND
+    });
 
-    user.authToken = generateToken(user._id, user.email, user.role);
-
-    // to unset device token of other user from same handset.
-    if (req.body.firebaseToken) await User.updateMany({ firebaseToken: req.body.firebaseToken, email: { $ne: user.email } }, { $set: { firebaseToken: "" } });
+    user.plan = plan;
+    user.subscriptionStatus = "active";
+    user.subscriptionDate = +new Date();
+    user.updatedAt = +new Date();
+    user.updatedBy = req.jwtData._id;
 
     await user.save();
     user.userId = user._id;
@@ -589,6 +604,9 @@ router.post("/subscribe", async (req, res) => {
         "authToken",
         "authType",
         "role",
+        "plan",
+        "subscriptionStatus",
+        "subscriptionDate",
         "status",
         "updatedAt",
         "insertDate",
@@ -598,7 +616,51 @@ router.post("/subscribe", async (req, res) => {
         apiId: req.apiId,
         statusCode: 200,
         success: true,
-        message: USER_CONSTANTS.USER_CREATED_SUCCESS,
+        message: USER_CONSTANTS.SUBSCRIPTION_SUCCESS,
+        data: response
+
+    });
+});
+
+
+router.post("/pay", authMiddleware(["user"]), async (req, res) => {
+    const { error } = validatePaymentInitialization(req.body);
+    if (error) return res.status(400).send({
+        apiId: req.apiId,
+        statusCode: 400,
+        success: false,
+        message: error.details[0].message
+    });
+
+    let email;
+    if (req.body.email) email = req.body.email.toLowerCase();
+
+
+    // let user = await User.findOne({ email: email });
+    // if (!user) return res.status(400).send({
+    //     apiId: req.apiId,
+    //     statusCode: 400,
+    //     success: false,
+    //     message: USER_CONSTANTS.NOT_FOUND
+    // });
+
+    var plan;
+    if (req.body.plan) plan = req.body.plan;
+
+    const response = await pay(email, 200000, "NGN", plan)
+    // const existingPlan = await SubscriberPlan.findOne({ _id: plan });
+    // if (!existingPlan) return res.status(400).send({
+    //     apiId: req.apiId,
+    //     statusCode: 400,
+    //     success: false,
+    //     message: PLAN_CONSTANTS.NOT_FOUND
+    // });
+
+    res.status(200).send({
+        apiId: req.apiId,
+        statusCode: 200,
+        success: true,
+        message: USER_CONSTANTS.SUBSCRIPTION_SUCCESS,
         data: response
 
     });
