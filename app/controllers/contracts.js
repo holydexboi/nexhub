@@ -295,5 +295,47 @@ router.put("/approve/reject", authMiddleware(["superAdmin"]), async (req, res) =
     }
 });
 
+router.get("/earning", authMiddleware(["superAdmin", "user"]), async (req, res) => {
+    var criteria = {};
+
+    var offset = isNaN(parseInt(req.query.offset)) ? 0 : parseInt(req.query.offset) * 10;
+    var limit = isNaN(parseInt(req.query.limit)) ? 500 : parseInt(req.query.limit);
+
+    if (req.jwtData.role === "user") {
+        criteria.createdBy = req.jwtData._id;
+    }
+
+    criteria.status = "approved";
+
+    if (req.query.contractId) {
+        criteria._id = new mongoose.Types.ObjectId(req.query.contractId);
+    }
+
+    if (req.query.orderId) {
+        criteria.orderId = req.query.orderId;
+    }
+
+    if (req.query.text) {
+        var regexName = new RegExp(req.query.text, "i");
+        criteria.$or = [{ exporterName: regexName }, { exporterOrgName: regexName }, { orderId: regexName }, { productName: regexName }];
+    }
+
+    let response = await Contract.aggregate([
+        {
+            "$group":{"_id":"$status","total":{"$sum":"$price"}}
+        }
+    ]);
+
+    //let totalCount = await Contract.countDocuments(criteria);
+    return res.send({
+        apiId: req.apiId,
+        statusCode: 200,
+        success: true,
+        message: CONTRACT_CONSTANTS.VIEW_CONTRACT,
+        data: response
+    });
+});
+
+
 
 module.exports = router;

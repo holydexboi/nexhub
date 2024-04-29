@@ -7,7 +7,7 @@ var paystack = require("paystack-api")(process.env.PAYSTACK_KEY);
 
 async function pay( email, amount, currency, plan){
 
-    await paystack.transaction
+   const response =  await paystack.transaction
       .initialize({
         email: email,
         amount: amount,
@@ -17,11 +17,30 @@ async function pay( email, amount, currency, plan){
 
       })
       .then(function(error, body) {
-        console.log(error);
-        console.log(body);
+        return error;
+        //console.log(body);
       });
+
+    return response
 }
 
+async function verify( reference ){
+
+  const response =  await paystack.transaction
+     .verify({
+      reference: reference
+
+
+     })
+     .then(function(error, body) {
+       return error;
+       //console.log(body);
+     });
+
+   return response
+} 
+
 module.exports = {
-    pay
+    pay,
+    verify
   }

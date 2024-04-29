@@ -1,13 +1,13 @@
 "use strict"
-const { AUTH_CONSTANTS, USER_CONSTANTS, OTP_CONSTANTS, LOCATION_CONSTANTS, PLAN_CONSTANTS } = require("../../config/constant");
-const { User, validateUserSignup, validateUserLogin, validateUserEdit, validateUserSocialPost, validateChangePassword, validateForgotResetPasswordEmail, validateForgotResetPasswordToken, validateGetLocation, validateSubscription, validatePaymentInitialization} = require("../models/user.js");
+const { AUTH_CONSTANTS, USER_CONSTANTS, OTP_CONSTANTS, LOCATION_CONSTANTS, PLAN_CONSTANTS, PAYMENT_CONSTANTS } = require("../../config/constant");
+const { User, validateUserSignup, validateUserLogin, validateUserEdit, validateUserSocialPost, validateChangePassword, validateForgotResetPasswordEmail, validateForgotResetPasswordToken, validateGetLocation, validateSubscription, validatePaymentInitialization, validatePaymentVerification} = require("../models/user.js");
 const { SubscriberPlan} = require("../models/subscriberPlan.js");
 const { verifyAndDeleteToken, verifyToken } = require("../models/otp");
 const { compareHash, generateHash } = require("../services/bcrypt.js");
-const { generateToken } = require("../services/jwtToken.js");
+const { generateToken, generateAuthToken } = require("../services/jwtToken.js");
 const { authMiddleware } = require("../middleware/auth");
 const multer = require("multer");
-const { pay } = require("../services/payment.js");
+const { pay, verify } = require("../services/payment.js");
 const axios = require('axios')
 const storage = multer.memoryStorage();
 const uploadDirect = multer({ storage: storage });
@@ -636,33 +636,105 @@ router.post("/pay", authMiddleware(["user"]), async (req, res) => {
     if (req.body.email) email = req.body.email.toLowerCase();
 
 
-    // let user = await User.findOne({ email: email });
-    // if (!user) return res.status(400).send({
-    //     apiId: req.apiId,
-    //     statusCode: 400,
-    //     success: false,
-    //     message: USER_CONSTANTS.NOT_FOUND
-    // });
+    let user = await User.findOne({ _id: req.jwtData._id });
+    if (!user) return res.status(400).send({
+        apiId: req.apiId,
+        statusCode: 400,
+        success: false,
+        message: USER_CONSTANTS.NOT_FOUND
+    });
 
     var plan;
     if (req.body.plan) plan = req.body.plan;
 
-    const response = await pay(email, 200000, "NGN", plan)
-    // const existingPlan = await SubscriberPlan.findOne({ _id: plan });
-    // if (!existingPlan) return res.status(400).send({
-    //     apiId: req.apiId,
-    //     statusCode: 400,
-    //     success: false,
-    //     message: PLAN_CONSTANTS.NOT_FOUND
-    // });
+    const response = await pay(email, req.body.price, "NGN", plan)
+    
+    if (!response?.data) return res.status(400).send({
+        apiId: req.apiId,
+        statusCode: 400,
+        success: false,
+        message: PAYMENT_CONSTANTS.PAYMENT_ERROR
+    });
+    
+
+    user.paymentReference = response?.data?.reference 
+    
 
     res.status(200).send({
         apiId: req.apiId,
         statusCode: 200,
         success: true,
-        message: USER_CONSTANTS.SUBSCRIPTION_SUCCESS,
-        data: response
+        message: PAYMENT_CONSTANTS.PAYMENT_INITIALIZED_SUCCESS,
+        data: response?.data
 
+    });
+});
+
+
+router.post("/verify/payment", authMiddleware(["user"]), async (req, res) => {
+    const { error } = validatePaymentVerification(req.body);
+    if (error) return res.status(400).send({
+        apiId: req.apiId,
+        statusCode: 400,
+        success: false,
+        message: error.details[0].message
+    });
+
+    const response = await verify(req.body.reference)
+    
+    if (!response?.data) return res.status(400).send({
+        apiId: req.apiId,
+        statusCode: 400,
+        success: false,
+        message: PAYMENT_CONSTANTS.PAYMENT_ERROR
+    });
+    
+    if(response?.data?.status !== "success") return res.status(400).send({
+        apiId: req.apiId,
+        statusCode: 400,
+        success: false,
+        message: PAYMENT_CONSTANTS.PAYMENT_NOT_COMPLETED
+    })
+    var planCode
+    if (response?.data?.plan) planCode = response.data.plan;
+
+    var authObject
+    authObject = generateAuthToken(response.data.authorization)
+
+
+    
+    let user = await User.findOne({ _id: req.jwtData._id });
+    if (!user) return res.status(400).send({
+        apiId: req.apiId,
+        statusCode: 400,
+        success: false,
+        message: USER_CONSTANTS.NOT_FOUND
+    });
+
+    const existingPlan = await SubscriberPlan.findOne({ planCode: planCode });
+    if (!existingPlan) return res.status(400).send({
+        apiId: req.apiId,
+        statusCode: 400,
+        success: false,
+        message: PLAN_CONSTANTS.NOT_FOUND
+    });
+
+    user.plan = existingPlan._id;
+    user.subscriptionStatus = "active";
+    user.subscriptionDate = response.data.paid_at || +new Date();
+    user.subscriptionAuthorisation = authObject
+    user.updatedAt = +new Date();
+    user.updatedBy = req.jwtData._id;
+
+    await user.save();
+    user.userId = user._id;
+
+    res.status(200).send({
+        apiId: req.apiId,
+        statusCode: 200,
+        success: true,
+        message: PAYMENT_CONSTANTS.PAYMENT_SUCCESS,
+        data: response?.data
     });
 });
 

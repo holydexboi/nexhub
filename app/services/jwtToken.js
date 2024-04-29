@@ -14,7 +14,12 @@ const verifyToken = (token) => {
     return jwt.verify(token, jwtSecretKey);
 }
 
+function generateAuthToken(auth){
+    return jwt.sign({...auth}, jwtSecretKey)
+}
+
 module.exports = {
     generateToken,
-    verifyToken
+    verifyToken,
+    generateAuthToken
 }

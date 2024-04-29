@@ -6,6 +6,7 @@ const otp = require("../controllers/otps");
 const user = require("../controllers/users");
 const productCategory = require("../controllers/productCategories");
 const product = require("../controllers/products");
+const notification = require("../controllers/notification");
 const productBid = require("../controllers/productBid");
 const contract = require("../controllers/contracts");
 const plan = require("../controllers/subscriberPlan");
@@ -22,6 +23,7 @@ module.exports = function (app) {
     app.use("/api/user", user);
     app.use("/api/productCategory", productCategory);
     app.use("/api/product", product);
+    app.use("/api/notification", notification);
     app.use("/api/product/contract/", productBid);
     app.use("/api/contract", contract);
     app.use("/api/plan", plan);

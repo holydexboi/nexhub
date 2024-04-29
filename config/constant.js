@@ -25,6 +25,7 @@ const USER_CONSTANTS = {
     LOGIN_SUCCESS: "Logged in successfully.",
     VIEW_PROFILE_SUCCESS: "You are currently viewing your profile",
     EDIT_PROFILE_SUCCESS: "Your profile has been updated successfully.",
+    SUBSCRIPTION_SUCCESS: "Your subscription was successfully.",
     NO_USER_FOUND_EMAIL: "No user found with this email.",
     PASSWORD_RESET_SUCCESS: "Your password has been successfully reset.",
     VALID_TOKEN_SUCCESS: "The token provided is valid.",
@@ -93,6 +94,22 @@ const CATEGORY_CONSTANTS = {
     EDIT_CATEGORY: "You have successfully updated this category.",
 };
 
+const NOTIFICATION_CONSTANTS = {
+    NOTIFICATION_ALREADY_EXISTS: "Notification already exists.",
+    NOT_FOUND: "Notification not found.",
+    NOTIFICATION_DELETED: "Notification deleted successfully.",
+    NOTIFICATION_CREATED_SUCCESS: "Notification created successfully.",
+    VIEW_NOTIFICATION: "You are currently viewing notification list.",
+    EDIT_NOTIFICATION: "You have viewed this notication successfully.",
+};
+
+const PAYMENT_CONSTANTS = {
+    PAYMENT_ERROR: "Transaction was not initialized",
+    PAYMENT_INITIALIZED_SUCCESS: "Transaction successfully initialized",
+    PAYMENT_NOT_COMPLETED: "Payment was not completed",
+    PAYMENT_SUCCESS: "You have successfully completed your payment"
+};
+
 const PLAN_CONSTANTS = {
     PLAN_ALREADY_EXISTS: "Plan already exists.",
     NOT_FOUND: "Plan not found.",
@@ -146,5 +163,7 @@ module.exports = {
     LOCATION_CONSTANTS,
     PARENT_CONSTANTS,
     PRODUCTBID_CONSTANTS,
-    PLAN_CONSTANTS
+    PLAN_CONSTANTS,
+    PAYMENT_CONSTANTS,
+    NOTIFICATION_CONSTANTS
 }
