@@ -90,10 +90,37 @@ router.get("/list", authMiddleware(["superAdmin", "user"]), async (req, res) => 
         { $skip: offset },
         { $limit: limit },
         {
+            $lookup: {
+                from: "users",
+                let: { fromUserId: { $toObjectId: "$fromUserId" } },
+                pipeline: [
+                    { $match: { $expr: { $eq: ["$_id", "$$fromUserId"] } } },
+                ],
+                as: "fromUserDetails",
+            },
+            
+        },
+        {
+            $lookup: {
+                from: "users",
+                let: { toUserId: { $toObjectId: "$toUserId" } },
+                pipeline: [
+                    { $match: { $expr: { $eq: ["$_id", "$$toUserId"] } } },
+                ],
+                as: "toUserDetails",
+            },
+            
+        },
+        {
             $project: {
                 _id: "$_id",
                 notificationId: "$_id",
                 fromUserId: 1,
+                message: 1,
+                fromUserFirstName: { $arrayElemAt: ["$fromUserDetails.firstName", 0]},
+                fromUserLasttName: { $arrayElemAt: ["$fromUserDetails.lastName", 0]},
+                toUserFirstName: { $arrayElemAt: ["$toUserDetails.firstName", 0]},
+                toUserLasttName: { $arrayElemAt: ["$toUserDetails.lastName", 0]},
                 toUserId: 1,
                 viewed: 1,
                 updatedAt: 1,
@@ -161,6 +188,55 @@ router.put("/edit", authMiddleware(["superAdmin", "user"]), async (req, res) => 
         data: response
     });
 });
+
+// delete all notifications
+router.delete("/delete", authMiddleware(["superAdmin", "user"]), async (req, res) => {
+
+    await Notification.deleteMany({ toUserId: req.jwtData._id });
+    res.send({
+        apiId: req.apiId,
+        statusCode: 200,
+        success: true,
+        message: NOTIFICATION_CONSTANTS.NOTIFICATION_DELETED
+    });
+});
+
+// delete notification
+router.delete("/:id", authMiddleware(["superAdmin", "user"]), async (req, res) => {
+    let criteria = {};
+    criteria._id = req.params.id;
+
+    let notification = await Notification.findOne({ _id: criteria });
+    if (!notification) return res.status(400).send({
+        apiId: req.apiId,
+        statusCode: 400,
+        success: false,
+        message: NOTIFICATION_CONSTANTS.NOT_FOUND
+    });
+    await Notification.deleteOne({ _id: criteria });
+    res.send({
+        apiId: req.apiId,
+        statusCode: 200,
+        success: true,
+        message: NOTIFICATION_CONSTANTS.NOTIFICATION_DELETED
+    });
+});
+
+
+// delete notification
+router.delete("/delete", authMiddleware(["superAdmin", "user"]), async (req, res) => {
+    let criteria = {};
+    criteria._id = req.params.id;
+
+    await Notification.deleteMany({ toUserId: req.jwtData._id });
+    res.send({
+        apiId: req.apiId,
+        statusCode: 200,
+        success: true,
+        message: NOTIFICATION_CONSTANTS.NOTIFICATION_DELETED
+    });
+});
+
 
 
 

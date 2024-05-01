@@ -103,6 +103,15 @@ const NOTIFICATION_CONSTANTS = {
     EDIT_NOTIFICATION: "You have viewed this notication successfully.",
 };
 
+const CHAT_CONSTANTS = {
+    CHAT_ALREADY_EXISTS: "Chat already exists.",
+    NOT_FOUND: "Chat not found.",
+    CHAT_DELETED: "Chat deleted successfully.",
+    CHAT_CREATED_SUCCESS: "Chat created successfully.",
+    VIEW_CHAT: "You are currently viewing chat list.",
+    EDIT_CHAT: "You have viewed this chat successfully.",
+};
+
 const PAYMENT_CONSTANTS = {
     PAYMENT_ERROR: "Transaction was not initialized",
     PAYMENT_INITIALIZED_SUCCESS: "Transaction successfully initialized",
@@ -165,5 +174,6 @@ module.exports = {
     PRODUCTBID_CONSTANTS,
     PLAN_CONSTANTS,
     PAYMENT_CONSTANTS,
-    NOTIFICATION_CONSTANTS
+    NOTIFICATION_CONSTANTS,
+    CHAT_CONSTANTS
 }
