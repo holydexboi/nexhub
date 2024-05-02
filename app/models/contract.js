@@ -7,6 +7,7 @@ const contractSchema = new mongoose.Schema({
     date: String, // dd/mm/yyyy
     address: String,
     exporterName: String,
+    exporterId: String,
     exporterOrgName: String,
     productPic: { type: Array, default: [] },
     productCategoryId: String,
@@ -65,6 +66,7 @@ function validateContractCreate(req) {
             }).required(),
         address: Joi.string().min(2).max(100).required(),
         exporterName: Joi.string().min(2).max(100).required(),
+        exporterId: Joi.string().min(2).max(255).required(),
         exporterOrgName: Joi.string().min(2).max(100).required(),
         productPic: Joi.array().items(Joi.string().allow("")),
         productCategoryId: Joi.string().min(2).max(100).required(),

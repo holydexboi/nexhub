@@ -15,7 +15,7 @@ const uuid = require('uuid');
 const router = express.Router();
 
 // create Contract
-router.post("/create", authMiddleware(["user"]), (req, res, next) => {
+router.post("/create", authMiddleware(["superAdmin", "user"]), (req, res, next) => {
     uploadDirect.fields([{ name: 'productPic', maxCount: 4 }])(req, res, (err) => {
         if (err instanceof multer.MulterError && err.code === 'LIMIT_UNEXPECTED_FILE') {
             err.message = 'Maximum 4 image files are allowed.';
@@ -40,8 +40,19 @@ router.post("/create", authMiddleware(["user"]), (req, res, next) => {
     var userId;
     if (req.jwtData.role === "user") userId = req.jwtData._id;
 
-    const existingUser = await User.findOne({ _id: userId, userType: "exporter" });
+if(req.jwtData.role === "user") {const existingUser = await User.findOne({ _id: userId, userType: "exporter" });
     if (!existingUser) return res.status(400).send({
+        apiId: req.apiId,
+        statusCode: 400,
+        success: false,
+        message: USER_CONSTANTS.ONLY_EXPORTER_CONTRACT
+    });}
+
+    var exporterId;
+    if(req.body.exporterId) exporterId = req.body.exporterId
+
+    const existingExporter = await User.findOne({ _id: exporterId, userType: "exporter" });
+    if (!existingExporter) return res.status(400).send({
         apiId: req.apiId,
         statusCode: 400,
         success: false,
@@ -68,6 +79,7 @@ router.post("/create", authMiddleware(["user"]), (req, res, next) => {
         "date",
         "address",
         "exporterName",
+        "exporterId",
         "exporterOrgName",
         "productPic",
         "productCategoryId",
@@ -145,7 +157,7 @@ router.get("/list", authMiddleware(["superAdmin", "user"]), async (req, res) => 
     var limit = isNaN(parseInt(req.query.limit)) ? 500 : parseInt(req.query.limit);
 
     if (req.jwtData.role === "user") {
-        criteria.createdBy = req.jwtData._id;
+        criteria.exporterId = req.jwtData._id
     }
 
     if (req.query.status) criteria.status = req.query.status;
@@ -186,6 +198,7 @@ router.get("/list", authMiddleware(["superAdmin", "user"]), async (req, res) => 
                 date: 1,
                 address: 1,
                 exporterName: 1,
+                exporterId: 1,
                 exporterOrgName: 1,
                 productPic: 1,
                 productCategoryId: 1,
