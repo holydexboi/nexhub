@@ -85,7 +85,8 @@ router.get("/:senderId/:recipientId", authMiddleware(["superAdmin", "user"]), as
 
     if(req.jwtData.role == "user"){
 
-        const existingUser = await User.findOne({ _id: req.params.recipientId});
+        const existingUser = await User.findOne({ _id: req.jwtData._id});
+        console.log(existingUser)
         if (!existingUser) return res.status(400).send({
             apiId: req.apiId,
             statusCode: 400,
@@ -101,7 +102,7 @@ router.get("/:senderId/:recipientId", authMiddleware(["superAdmin", "user"]), as
             message: USER_CONSTANTS.NOT_FOUND
         });
     }else{
-        const existingUser = await SuperAdmin.findOne({ _id: req.params.recipientId});
+        const existingUser = await SuperAdmin.findOne({ _id: req.jwtData._id});
         if (!existingUser) return res.status(400).send({
             apiId: req.apiId,
             statusCode: 400,
@@ -117,8 +118,8 @@ router.get("/:senderId/:recipientId", authMiddleware(["superAdmin", "user"]), as
             message: USER_CONSTANTS.NOT_FOUND
         });
     }
-    criteria.senderId = [req.params.senderId, req.params.recipientId];
-    criteria.recipientId = [req.params.recipientId, req.params.senderId];
+    criteria.senderId = { $in: [req.jwtData._id, req.params.senderId] };
+    criteria.recipientId = { $in: [req.jwtData._id, req.params.senderId] };
 
 
     var offset = isNaN(parseInt(req.query.offset)) ? 0 : parseInt(req.query.offset) * 10;

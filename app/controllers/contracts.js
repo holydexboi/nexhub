@@ -375,42 +375,42 @@ router.get(
   async (req, res) => {
     var criteria = {};
 
-    var offset = isNaN(parseInt(req.query.offset))
-      ? 0
-      : parseInt(req.query.offset) * 10;
-    var limit = isNaN(parseInt(req.query.limit))
-      ? 500
-      : parseInt(req.query.limit);
-
     if (req.jwtData.role === "user") {
       criteria.createdBy = req.jwtData._id;
     }
 
-    criteria.status = "approved";
+    criteria.status = "completed";
 
-    if (req.query.contractId) {
-      criteria._id = new mongoose.Types.ObjectId(req.query.contractId);
-    }
 
-    if (req.query.orderId) {
-      criteria.orderId = req.query.orderId;
-    }
+    let inProgressresponse = await Contract.aggregate([{
+      $match: {
+        "status": "completed",
+        "exporterId": req.jwtData._id
+        
+      }
+    },
+    {
+      $group: {
+        _id: null,
+        totalPrice: { $sum: "$price" }
+      }
+    }]);
 
-    if (req.query.text) {
-      var regexName = new RegExp(req.query.text, "i");
-      criteria.$or = [
-        { exporterName: regexName },
-        { exporterOrgName: regexName },
-        { orderId: regexName },
-        { productName: regexName },
-      ];
-    }
+    let totalEarningresponse = await Contract.aggregate([{
+      $match: {
+        "orderStatus": "completed",
+        "exporterId": req.jwtData._id
+        
+      }
+    },
+    {
+      $group: {
+        _id: null,
+        totalPrice: { $sum: "$price" }
+      }
+    }]);
 
-    let response = await Contract.aggregate([
-      {
-        $group: { _id: "$status", total: { $sum: "$price" } },
-      },
-    ]);
+    let response = {inprogressTransaction : inProgressresponse, completedTransaction: totalEarningresponse}
 
     //let totalCount = await Contract.countDocuments(criteria);
     return res.send({
