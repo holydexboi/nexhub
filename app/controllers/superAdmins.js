@@ -1,7 +1,7 @@
 "use strict"
 const { AUTH_CONSTANTS, USER_CONSTANTS, OTP_CONSTANTS } = require("../../config/constant");
 const { SuperAdmin, validateSuperAdminLogin, validateEmail, validateSuperAdminEdit, validateForgotResetPasswordEmail, validateChangePassword } = require("../models/superAdmin");
-const { SuperAdmin, validateSuperAdminLogin, validateEmail, validateSuperAdminEdit, validateForgotResetPasswordEmail, validateChangePassword } = require("../model");
+const { User } = require("../models/user.js");
 const { verifyAndDeleteToken } = require("../models/otp");
 const { compareHash, generateHash } = require("../services/bcrypt.js");
 const { generateToken } = require("../services/jwtToken.js");
@@ -336,12 +336,18 @@ router.get("/dashboard", authMiddleware(["superAdmin"]), async (req, res) => {
     
 
     let totalCount = await User.countDocuments({});
+    let subscribedUser = await User.countDocuments({subscriptionStatus: "active"});
+    let adminCount = await SuperAdmin.countDocuments({});
     return res.send({
         apiId: req.apiId,
         statusCode: 200,
         success: true,
-        message: USER_CONSTANTS.,
-        data: totalCount
+        message: USER_CONSTANTS.DASHBOARD_VIEW,
+        data: {
+            userCount: totalCount,
+            subscribedUser,
+            adminCount
+        }
     });
 });
 

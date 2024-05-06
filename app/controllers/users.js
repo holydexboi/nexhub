@@ -622,20 +622,6 @@ router.put("/subscribe", authMiddleware(["user"]), async (req, res) => {
     });
 });
 
-// view product list
-router.get("/totaluser", authMiddleware(["superAdmin"]), async (req, res) => {
-    
-
-    let totalCount = await User.countDocuments({});
-    return res.send({
-        apiId: req.apiId,
-        statusCode: 200,
-        success: true,
-        message: USER_CONSTANTS.,
-        data: totalCount
-    });
-});
-
 
 
 router.post("/pay", authMiddleware(["user"]), async (req, res) => {
