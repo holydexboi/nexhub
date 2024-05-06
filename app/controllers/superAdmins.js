@@ -1,6 +1,7 @@
 "use strict"
 const { AUTH_CONSTANTS, USER_CONSTANTS, OTP_CONSTANTS } = require("../../config/constant");
 const { SuperAdmin, validateSuperAdminLogin, validateEmail, validateSuperAdminEdit, validateForgotResetPasswordEmail, validateChangePassword } = require("../models/superAdmin");
+const { SuperAdmin, validateSuperAdminLogin, validateEmail, validateSuperAdminEdit, validateForgotResetPasswordEmail, validateChangePassword } = require("../model");
 const { verifyAndDeleteToken } = require("../models/otp");
 const { compareHash, generateHash } = require("../services/bcrypt.js");
 const { generateToken } = require("../services/jwtToken.js");
@@ -328,6 +329,19 @@ router.post("/logout", authMiddleware(["superAdmin"]), async (req, res) => {
         statusCode: 200,
         success: true,
         message: USER_CONSTANTS.LOGOUT_SUCCESSFULLY
+    });
+});
+
+router.get("/dashboard", authMiddleware(["superAdmin"]), async (req, res) => {
+    
+
+    let totalCount = await User.countDocuments({});
+    return res.send({
+        apiId: req.apiId,
+        statusCode: 200,
+        success: true,
+        message: USER_CONSTANTS.,
+        data: totalCount
     });
 });
 
